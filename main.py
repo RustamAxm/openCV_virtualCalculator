@@ -9,10 +9,15 @@ class Button:
         self.height = height
         self.value = value
 
-    def draw(self, img):
+    def drawButton(self, img):
         cv2.rectangle(img, self.pos, (self.pos[0] + self.width, self.pos[1] + self.height), (225, 225, 255), cv2.FILLED)
         cv2.rectangle(img,  self.pos, (self.pos[0] + self.width, self.pos[1] + self.height),(50, 50, 50), 2)
         cv2.putText(img, self.value, (self.pos[0]+30, self.pos[1]+70) , cv2.FONT_HERSHEY_PLAIN, 4, (50, 50, 50), 3)
+
+    @staticmethod
+    def drawResult(img):
+        cv2.rectangle(img, (800, 70), (800 + 400, 70 + 100), (225, 225, 255), cv2.FILLED)
+        cv2.rectangle(img, (800, 70), (800 + 400, 70 + 100), (50, 50, 50), 2)
 
     def checkClick(self, x, y):
         if self.pos[0] < x < self.pos[0] + self.width \
@@ -55,11 +60,10 @@ while True:
 
     #detection part
     hands, img = detector.findHands(img, flipType= False)
-
-    cv2.rectangle(img, (800, 70), (800+400, 70+100), (225, 225, 255), cv2.FILLED)
-    cv2.rectangle(img, (800, 70), (800+400, 70+100), (50, 50, 50), 2)
+    #calculator drawing
+    Button.drawResult(img)
     for button in buttonList:
-        button.draw(img)
+        button.drawButton(img)
 
     #processing
     #check hands
@@ -73,12 +77,17 @@ while True:
                 if button.checkClick(x, y) and delayCounter == 0:
                     myVal = buttonValuesList[int(i%4)][int(i/4)]
                     if myVal == "=":
-                        myEquation = str(eval(myEquation))
+                        try:
+                            myEquation = str(eval(myEquation))
+                        except SyntaxError:
+                            myEquation = "Error"
+                        except ZeroDivisionError:
+                            myEquation = "Error"
                     else:
                         myEquation += myVal
 
                     delayCounter=1
-
+    #delay counter
     if delayCounter !=0:
         delayCounter +=1
         if delayCounter > 10:
@@ -88,11 +97,9 @@ while True:
     cv2.putText(img, myEquation, (810, 130), cv2.FONT_HERSHEY_PLAIN, 4, (50, 50, 50), 3)
 
 
-
-
     cv2.imshow("Image", img)
     key = cv2.waitKey(5)
-    if key == ord('c'):
+    if key == ord('c'): #empty string
         myEquation = ""
-    if key == 27:
+    if key == 27: # escape
         break
